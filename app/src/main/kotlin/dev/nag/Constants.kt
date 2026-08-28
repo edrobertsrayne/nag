@@ -3,14 +3,6 @@ package dev.nag
 import androidx.compose.animation.core.Spring
 import dev.nag.domain.Discards
 
-enum class NagLevel {
-    GENTLE,
-    FREQUENT,
-    LAST_CHANCE,
-}
-
-data class NagSlot(val minuteOfDay: Int, val level: NagLevel)
-
 object Constants {
     const val MIN_SDK = 33
     const val COMPILE_SDK = 37
@@ -25,30 +17,6 @@ object Constants {
     const val SWIPE_MAX_TILT_DEGREES = 12f
     const val SWIPE_SPRING_DAMPING_RATIO = Spring.DampingRatioMediumBouncy
     const val SWIPE_SPRING_STIFFNESS = Spring.StiffnessMedium
-
-    const val QUIET_BEFORE_MINUTE = 9 * 60
-    const val QUIET_AFTER_MINUTE = 21 * 60 + 30
-    const val WEEKDAY_SILENT_START_MINUTE = 8 * 60
-    const val WEEKDAY_SILENT_END_MINUTE = 17 * 60 + 59
-
-    val WEEKDAY_SLOTS: List<NagSlot> = listOf(
-        NagSlot(18 * 60, NagLevel.GENTLE),
-        NagSlot(19 * 60, NagLevel.FREQUENT),
-        NagSlot(20 * 60, NagLevel.FREQUENT),
-        NagSlot(21 * 60, NagLevel.LAST_CHANCE),
-        NagSlot(21 * 60 + 30, NagLevel.LAST_CHANCE),
-    )
-
-    val WEEKEND_SLOTS: List<NagSlot> = listOf(
-        NagSlot(10 * 60, NagLevel.GENTLE),
-        NagSlot(12 * 60, NagLevel.GENTLE),
-        NagSlot(14 * 60, NagLevel.FREQUENT),
-        NagSlot(16 * 60, NagLevel.FREQUENT),
-        NagSlot(18 * 60, NagLevel.FREQUENT),
-        NagSlot(20 * 60, NagLevel.FREQUENT),
-        NagSlot(21 * 60, NagLevel.LAST_CHANCE),
-        NagSlot(21 * 60 + 30, NagLevel.LAST_CHANCE),
-    )
 
     const val NOTIFICATION_ID = 1
 
