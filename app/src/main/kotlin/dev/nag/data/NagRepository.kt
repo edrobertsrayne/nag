@@ -13,6 +13,12 @@ interface NagRepository {
 
     val discardsLeft: Flow<Int>
 
+    /** One-shot read of active chores, for the nag fire path. */
+    suspend fun activeChoresNow(): List<Chore>
+
+    /** One-shot read of all completion days, for the nag fire path. */
+    suspend fun completionDaysNow(): Set<Long>
+
     suspend fun addChore(name: String, cadenceDays: Int)
 
     /**

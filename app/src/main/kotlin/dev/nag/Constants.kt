@@ -20,6 +20,8 @@ object Constants {
 
     const val NOTIFICATION_ID = 1
 
+    const val NAG_FALLBACK_WINDOW_MILLIS = 10 * 60 * 1000L
+
     const val CHANNEL_GENTLE_ID = "nag_gentle"
     const val CHANNEL_FREQUENT_ID = "nag_frequent"
     const val CHANNEL_LAST_CHANCE_ID = "nag_last_chance"

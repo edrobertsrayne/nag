@@ -1,5 +1,8 @@
 package dev.nag.domain
 
+import java.time.LocalDate
+import java.time.ZoneId
+
 /**
  * Everything about when nags may fire: the fixed slot table with escalation
  * levels, the global quiet hours, the weekday silent window, and the
@@ -27,6 +30,13 @@ object NagSchedule {
     // Weekday silent window: nothing posted at all 08:00-17:59 Mon-Fri.
     const val WEEKDAY_SILENT_START_MINUTE = 8 * 60
     const val WEEKDAY_SILENT_END_MINUTE = 17 * 60 + 59
+
+    // How many minutes after its slot a fire may arrive and still count as
+    // that slot. Exact alarms can be nudged by Doze and the inexact fallback
+    // drifts inside its window; anything later is a missed slot and never
+    // posts. Smaller than the smallest gap between slots (30 min), so the
+    // grace windows never overlap.
+    const val LATE_DELIVERY_GRACE_MINUTES = 15
 
     val WEEKDAY_SLOTS: List<NagSlot> = listOf(
         NagSlot(18 * 60, NagLevel.GENTLE),
@@ -57,6 +67,19 @@ object NagSchedule {
     fun slotAt(epochDay: Long, minuteOfDay: Int): NagSlot? =
         slotsFor(epochDay).firstOrNull { it.minuteOfDay == minuteOfDay }
 
+    /**
+     * The slot this minute belongs to: the last slot whose minute has passed,
+     * while still inside the late-delivery grace. A fire the alarm delivered
+     * late answers with the slot it was armed for; a fire that arrived after
+     * the grace (a missed slot) answers null and nothing posts.
+     */
+    fun slotWithinGrace(epochDay: Long, minuteOfDay: Int): NagSlot? =
+        slotsFor(epochDay)
+            .lastOrNull {
+                minuteOfDay >= it.minuteOfDay &&
+                    minuteOfDay <= it.minuteOfDay + LATE_DELIVERY_GRACE_MINUTES
+            }
+
     fun isQuiet(minuteOfDay: Int): Boolean =
         minuteOfDay < QUIET_BEFORE_MINUTE || minuteOfDay > QUIET_AFTER_MINUTE
 
@@ -74,4 +97,12 @@ object NagSchedule {
         return laterToday?.let { ScheduledNag(epochDay, it) }
             ?: ScheduledNag(epochDay + 1, slotsFor(epochDay + 1).first())
     }
+
+    /** The wall-clock instant a slot fires, in the given zone. */
+    fun triggerAtMillis(epochDay: Long, minuteOfDay: Int, zone: ZoneId): Long =
+        LocalDate.ofEpochDay(epochDay)
+            .atStartOfDay(zone)
+            .plusMinutes(minuteOfDay.toLong())
+            .toInstant()
+            .toEpochMilli()
 }

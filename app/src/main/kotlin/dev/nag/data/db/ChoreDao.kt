@@ -63,6 +63,9 @@ interface ChoreDao {
     @Query("SELECT * FROM chores WHERE archived = 0 ORDER BY creation_order")
     fun observeActiveChores(): Flow<List<ChoreEntity>>
 
+    @Query("SELECT * FROM chores WHERE archived = 0 ORDER BY creation_order")
+    suspend fun getActiveChores(): List<ChoreEntity>
+
     @Query("SELECT * FROM chores WHERE id = :id")
     suspend fun getChore(id: Long): ChoreEntity?
 }

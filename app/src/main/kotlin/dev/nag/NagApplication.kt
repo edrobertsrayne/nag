@@ -20,6 +20,7 @@ class NagApplication : Application() {
             .addMigrations(NagDatabase.MIGRATION_1_2)
             .build()
         repository = RoomNagRepository(database.choreDao(), database.completionDao(), database.discardBudgetDao())
+        NagScheduler(this).scheduleNextFromNow()
     }
 
     private fun createNotificationChannels() {

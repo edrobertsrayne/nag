@@ -27,6 +27,10 @@ class FakeNagRepository(initialCompletionDays: Set<Long> = emptySet()) : NagRepo
 
     override val discardsLeft = discardBudget.map { Discards.left(it, today) }
 
+    override suspend fun activeChoresNow(): List<Chore> = chores.value.filter { !it.archived }
+
+    override suspend fun completionDaysNow(): Set<Long> = completionDays.value
+
     override suspend fun addChore(name: String, cadenceDays: Int) {
         val id = nextId++
         chores.value = chores.value + Chore(

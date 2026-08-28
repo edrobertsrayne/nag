@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">nag</string>
+    <string name="nag_notification_title">nag</string>
     <string name="empty_deck_message">Nothing due.</string>
     <string name="no_discards_left">No discards left</string>
     <string name="streak_label">day streak</string>

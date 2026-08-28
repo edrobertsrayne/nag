@@ -13,4 +13,7 @@ interface CompletionDao {
 
     @Query("SELECT DISTINCT completion_day FROM completions")
     fun observeCompletionDays(): Flow<List<Long>>
+
+    @Query("SELECT DISTINCT completion_day FROM completions")
+    suspend fun getCompletionDays(): List<Long>
 }

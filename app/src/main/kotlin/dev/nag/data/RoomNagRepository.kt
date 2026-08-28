@@ -38,6 +38,12 @@ class RoomNagRepository(
             Discards.left(row?.toDiscardBudget(), today().toEpochDay())
         }
 
+    override suspend fun activeChoresNow(): List<Chore> =
+        choreDao.getActiveChores().map { it.toChore() }
+
+    override suspend fun completionDaysNow(): Set<Long> =
+        completionDao.getCompletionDays().toSet()
+
     override suspend fun addChore(name: String, cadenceDays: Int) {
         choreDao.insertChoreWithCreationOrderFromId(
             Chore.create(name = name, cadenceDays = cadenceDays, today = today().toEpochDay()).toEntity(),
