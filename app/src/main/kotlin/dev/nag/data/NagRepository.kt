@@ -12,4 +12,6 @@ interface NagRepository {
     val deck: Flow<List<Chore>>
 
     suspend fun addChore(name: String, cadenceDays: Int)
+
+    suspend fun completeChore(choreId: Long)
 }

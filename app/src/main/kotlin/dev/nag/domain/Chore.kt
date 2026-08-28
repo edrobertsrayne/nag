@@ -10,6 +10,8 @@ data class Chore(
 
     fun isDue(today: Long): Boolean = today >= nextDueDay
 
+    fun completedOn(completionDay: Long): Chore = copy(nextDueDay = completionDay + cadenceDays)
+
     companion object {
 
         fun create(name: String, cadenceDays: Int, today: Long, creationOrder: Long = 0): Chore = Chore(

@@ -3,6 +3,7 @@ package dev.nag.data
 import dev.nag.data.db.ChoreDao
 import dev.nag.data.db.ChoreEntity
 import dev.nag.data.db.CompletionDao
+import dev.nag.data.db.CompletionEntity
 import dev.nag.domain.Chore
 import dev.nag.domain.Deck
 import dev.nag.domain.Streak
@@ -30,6 +31,15 @@ class RoomNagRepository(
     override suspend fun addChore(name: String, cadenceDays: Int) {
         choreDao.insertChoreWithCreationOrderFromId(
             Chore.create(name = name, cadenceDays = cadenceDays, today = today().toEpochDay()).toEntity(),
+        )
+    }
+
+    override suspend fun completeChore(choreId: Long) {
+        val completionDay = today().toEpochDay()
+        val chore = choreDao.getChore(choreId) ?: return
+        choreDao.recordCompletion(
+            completion = CompletionEntity(choreId = choreId, completionDay = completionDay),
+            nextDueDay = chore.toChore().completedOn(completionDay).nextDueDay,
         )
     }
 }

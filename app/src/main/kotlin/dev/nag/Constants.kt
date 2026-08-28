@@ -21,6 +21,7 @@ object Constants {
 
     const val SWIPE_COMMIT_FRACTION = 0.4f
     const val SWIPE_FLING_VELOCITY_DP_PER_S = 800f
+    const val SWIPE_MAX_TILT_DEGREES = 12f
     const val SWIPE_SPRING_DAMPING_RATIO = Spring.DampingRatioMediumBouncy
     const val SWIPE_SPRING_STIFFNESS = Spring.StiffnessMedium
 

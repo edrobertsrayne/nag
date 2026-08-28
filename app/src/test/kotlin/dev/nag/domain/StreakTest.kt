@@ -44,4 +44,14 @@ class StreakTest {
     fun `duplicate irrelevant days outside the run do not inflate it`() {
         assertEquals(2, Streak.of(setOf(90, 99, 100), today = 100))
     }
+
+    @Test
+    fun `a zero-completion day breaks the streak when it ends`() {
+        assertEquals(0, Streak.of(setOf(97, 98), today = 100))
+    }
+
+    @Test
+    fun `completions from archived chores still count`() {
+        assertEquals(3, Streak.of(setOf(98, 99, 100), today = 100))
+    }
 }

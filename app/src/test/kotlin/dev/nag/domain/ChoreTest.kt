@@ -19,4 +19,28 @@ class ChoreTest {
         assertEquals("laundry", chore.name)
         assertEquals(3, chore.cadenceDays)
     }
+
+    @Test
+    fun `completing sets next due to completion day plus cadence`() {
+        val chore = Chore.create(name = "dishes", cadenceDays = 3, today = 100)
+        assertEquals(103, chore.completedOn(completionDay = 100).nextDueDay)
+    }
+
+    @Test
+    fun `completing a daily chore makes it due tomorrow`() {
+        val chore = Chore.create(name = "dishes", cadenceDays = 1, today = 100)
+        assertEquals(101, chore.completedOn(completionDay = 100).nextDueDay)
+    }
+
+    @Test
+    fun `late completion anchors cadence to completion day not old due date`() {
+        val chore = Chore(
+            id = 1,
+            name = "bins",
+            cadenceDays = 3,
+            nextDueDay = 98,
+            creationOrder = 1,
+        )
+        assertEquals(108, chore.completedOn(completionDay = 105).nextDueDay)
+    }
 }
