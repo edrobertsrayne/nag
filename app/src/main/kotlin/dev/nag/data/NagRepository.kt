@@ -11,7 +11,15 @@ interface NagRepository {
 
     val deck: Flow<List<Chore>>
 
+    val discardsLeft: Flow<Int>
+
     suspend fun addChore(name: String, cadenceDays: Int)
 
     suspend fun completeChore(choreId: Long)
+
+    /**
+     * Puts the chore off for the rest of the day. Returns false when the
+     * discard budget is spent; nothing is written in that case.
+     */
+    suspend fun discardChore(choreId: Long): Boolean
 }

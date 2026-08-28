@@ -1,6 +1,7 @@
 package dev.nag
 
 import androidx.compose.animation.core.Spring
+import dev.nag.domain.Discards
 
 enum class NagLevel {
     GENTLE,
@@ -17,7 +18,7 @@ object Constants {
 
     const val CADENCE_MIN_DAYS = 1
 
-    const val DISCARD_BUDGET_PER_DAY = 2
+    const val DISCARD_BUDGET_PER_DAY = Discards.DAILY_BUDGET
 
     const val SWIPE_COMMIT_FRACTION = 0.4f
     const val SWIPE_FLING_VELOCITY_DP_PER_S = 800f

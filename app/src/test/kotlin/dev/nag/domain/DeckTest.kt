@@ -68,4 +68,18 @@ class DeckTest {
         )
         assertEquals(listOf(1L, 2L, 3L), deck.map { it.creationOrder })
     }
+
+    @Test
+    fun `deck hides chores discarded today`() {
+        val discarded = chore(nextDueDay = 100).discardedOn(day = 100)
+        val deck = Deck.order(listOf(discarded, chore(nextDueDay = 101)), today = 100)
+        assertEquals(emptyList<Chore>(), deck)
+    }
+
+    @Test
+    fun `discarded chore returns to the deck the next day`() {
+        val discarded = chore(nextDueDay = 100).discardedOn(day = 100)
+        val deck = Deck.order(listOf(discarded), today = 101)
+        assertEquals(listOf(discarded), deck)
+    }
 }

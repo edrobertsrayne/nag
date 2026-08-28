@@ -12,10 +12,13 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +35,9 @@ internal const val DECK_CARD_TAG = "deck_card"
 fun DeckScreen(repository: NagRepository, onOpenQueue: () -> Unit, modifier: Modifier = Modifier) {
     val deck by repository.deck.collectAsState(initial = emptyList())
     val streak by repository.streak.collectAsState(initial = 0)
+    val discardsLeft by repository.discardsLeft.collectAsState(initial = 0)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val noDiscardsLeftMessage = stringResource(R.string.no_discards_left)
     val scope = rememberCoroutineScope()
     Box(modifier = modifier.fillMaxSize().padding(24.dp)) {
         IconButton(onClick = onOpenQueue, modifier = Modifier.align(Alignment.TopEnd)) {
@@ -72,6 +78,19 @@ fun DeckScreen(repository: NagRepository, onOpenQueue: () -> Unit, modifier: Mod
                 SwipeCard(
                     cardId = top.id,
                     onSwipeRight = { scope.launch { repository.completeChore(top.id) } },
+                    onSwipeLeft = {
+                        scope.launch {
+                            if (!repository.discardChore(top.id)) {
+                                snackbarHostState.showSnackbar(message = noDiscardsLeftMessage)
+                            }
+                        }
+                    },
+                    canSwipeLeft = discardsLeft > 0,
+                    onDiscardRejected = {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(message = noDiscardsLeftMessage)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxSize()
                         .testTag(DECK_CARD_TAG),
@@ -85,5 +104,9 @@ fun DeckScreen(repository: NagRepository, onOpenQueue: () -> Unit, modifier: Mod
                 }
             }
         }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 }

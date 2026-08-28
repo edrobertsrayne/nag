@@ -2,6 +2,8 @@ package dev.nag.data
 
 import dev.nag.domain.Chore
 import dev.nag.domain.Deck
+import dev.nag.domain.DiscardBudget
+import dev.nag.domain.Discards
 import dev.nag.domain.Streak
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,12 +16,15 @@ class FakeNagRepository(initialCompletionDays: Set<Long> = emptySet()) : NagRepo
     private var nextId = 1L
     private val chores = MutableStateFlow<List<Chore>>(emptyList())
     private val completionDays = MutableStateFlow(initialCompletionDays)
+    private val discardBudget = MutableStateFlow<DiscardBudget?>(null)
 
     override val streak = completionDays.map { Streak.of(it, today) }
 
     override val activeChores: Flow<List<Chore>> = chores
 
     override val deck: Flow<List<Chore>> = chores.map { Deck.order(it, today) }
+
+    override val discardsLeft = discardBudget.map { Discards.left(it, today) }
 
     override suspend fun addChore(name: String, cadenceDays: Int) {
         val id = nextId++
@@ -37,5 +42,14 @@ class FakeNagRepository(initialCompletionDays: Set<Long> = emptySet()) : NagRepo
         chores.value = chores.value.map { chore ->
             if (chore.id == choreId) chore.completedOn(today) else chore
         }
+    }
+
+    override suspend fun discardChore(choreId: Long): Boolean {
+        if (Discards.left(discardBudget.value, today) == 0) return false
+        discardBudget.value = Discards.record(discardBudget.value, today)
+        chores.value = chores.value.map { chore ->
+            if (chore.id == choreId) chore.discardedOn(today) else chore
+        }
+        return true
     }
 }

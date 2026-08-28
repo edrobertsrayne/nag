@@ -16,8 +16,10 @@ class NagApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannels()
-        val database = Room.databaseBuilder(this, NagDatabase::class.java, NagDatabase.NAME).build()
-        repository = RoomNagRepository(database.choreDao(), database.completionDao())
+        val database = Room.databaseBuilder(this, NagDatabase::class.java, NagDatabase.NAME)
+            .addMigrations(NagDatabase.MIGRATION_1_2)
+            .build()
+        repository = RoomNagRepository(database.choreDao(), database.completionDao(), database.discardBudgetDao())
     }
 
     private fun createNotificationChannels() {

@@ -11,5 +11,6 @@ data class ChoreEntity(
     @ColumnInfo(name = "cadence_days") val cadenceDays: Int,
     @ColumnInfo(name = "next_due_day") val nextDueDay: Long,
     @ColumnInfo(name = "creation_order") val creationOrder: Long,
+    @ColumnInfo(name = "last_discarded_day", defaultValue = "0") val lastDiscardedDay: Long = 0,
     @ColumnInfo(name = "archived") val archived: Boolean = false,
 )

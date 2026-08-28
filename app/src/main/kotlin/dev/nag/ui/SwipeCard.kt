@@ -5,9 +5,11 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -20,12 +22,19 @@ import kotlinx.coroutines.launch
 fun SwipeCard(
     cardId: Long,
     onSwipeRight: () -> Unit,
+    onSwipeLeft: () -> Unit,
+    canSwipeLeft: Boolean,
+    onDiscardRejected: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     val offsetX = remember(cardId) { Animatable(0f) }
     val velocityTracker = remember(cardId) { VelocityTracker() }
     val committed = remember(cardId) { mutableStateOf(false) }
+    val currentOnSwipeRight by rememberUpdatedState(onSwipeRight)
+    val currentOnSwipeLeft by rememberUpdatedState(onSwipeLeft)
+    val currentCanSwipeLeft by rememberUpdatedState(canSwipeLeft)
+    val currentOnDiscardRejected by rememberUpdatedState(onDiscardRejected)
     val scope = rememberCoroutineScope()
 
     Card(
@@ -51,18 +60,34 @@ fun SwipeCard(
                     },
                     onDragEnd = {
                         if (!committed.value) {
+                            val velocity = velocityTracker.calculateVelocity().x
                             val draggedRight =
                                 offsetX.value > size.width * Constants.SWIPE_COMMIT_FRACTION
-                            val flungRight =
-                                velocityTracker.calculateVelocity().x > flingVelocityPx
-                            if (draggedRight || flungRight) {
-                                committed.value = true
-                                scope.launch {
-                                    offsetX.animateTo(size.width * 1.5f, spring())
-                                    onSwipeRight()
+                            val flungRight = velocity > flingVelocityPx
+                            val draggedLeft =
+                                -offsetX.value > size.width * Constants.SWIPE_COMMIT_FRACTION
+                            val flungLeft = -velocity > flingVelocityPx
+                            when {
+                                draggedRight || flungRight -> {
+                                    committed.value = true
+                                    scope.launch {
+                                        offsetX.animateTo(size.width * 1.5f, spring())
+                                        currentOnSwipeRight()
+                                    }
                                 }
-                            } else {
-                                scope.launch { springBack(offsetX) }
+                                draggedLeft || flungLeft -> {
+                                    if (currentCanSwipeLeft) {
+                                        committed.value = true
+                                        scope.launch {
+                                            offsetX.animateTo(-size.width * 1.5f, spring())
+                                            currentOnSwipeLeft()
+                                        }
+                                    } else {
+                                        scope.launch { springBack(offsetX) }
+                                        currentOnDiscardRejected()
+                                    }
+                                }
+                                else -> scope.launch { springBack(offsetX) }
                             }
                         }
                     },

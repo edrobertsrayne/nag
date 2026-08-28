@@ -43,4 +43,28 @@ class ChoreTest {
         )
         assertEquals(108, chore.completedOn(completionDay = 105).nextDueDay)
     }
+
+    @Test
+    fun `discarding leaves next-due unchanged`() {
+        val chore = Chore.create(name = "dishes", cadenceDays = 1, today = 100)
+        assertEquals(100, chore.discardedOn(day = 100).nextDueDay)
+    }
+
+    @Test
+    fun `discarded chore stays due`() {
+        val chore = Chore.create(name = "dishes", cadenceDays = 1, today = 100)
+        assertTrue(chore.discardedOn(day = 100).isDue(today = 100))
+    }
+
+    @Test
+    fun `discarded chore is hidden for the rest of the discard day`() {
+        val chore = Chore.create(name = "dishes", cadenceDays = 1, today = 100).discardedOn(day = 100)
+        assertTrue(chore.isHiddenOn(day = 100))
+    }
+
+    @Test
+    fun `discarded chore is visible again the next day`() {
+        val chore = Chore.create(name = "dishes", cadenceDays = 1, today = 100).discardedOn(day = 100)
+        assertTrue(!chore.isHiddenOn(day = 101))
+    }
 }

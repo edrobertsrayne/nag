@@ -4,8 +4,12 @@ import dev.nag.data.db.ChoreDao
 import dev.nag.data.db.ChoreEntity
 import dev.nag.data.db.CompletionDao
 import dev.nag.data.db.CompletionEntity
+import dev.nag.data.db.DiscardBudgetDao
+import dev.nag.data.db.DiscardBudgetEntity
 import dev.nag.domain.Chore
 import dev.nag.domain.Deck
+import dev.nag.domain.DiscardBudget
+import dev.nag.domain.Discards
 import dev.nag.domain.Streak
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -14,6 +18,7 @@ import java.time.LocalDate
 class RoomNagRepository(
     private val choreDao: ChoreDao,
     private val completionDao: CompletionDao,
+    private val discardBudgetDao: DiscardBudgetDao,
     private val today: () -> LocalDate = LocalDate::now,
 ) : NagRepository {
 
@@ -27,6 +32,11 @@ class RoomNagRepository(
 
     override val deck: Flow<List<Chore>> =
         activeChores.map { Deck.order(it, today().toEpochDay()) }
+
+    override val discardsLeft: Flow<Int> =
+        discardBudgetDao.observeForDay(today().toEpochDay()).map { row ->
+            Discards.left(row?.toDiscardBudget(), today().toEpochDay())
+        }
 
     override suspend fun addChore(name: String, cadenceDays: Int) {
         choreDao.insertChoreWithCreationOrderFromId(
@@ -42,6 +52,20 @@ class RoomNagRepository(
             nextDueDay = chore.toChore().completedOn(completionDay).nextDueDay,
         )
     }
+
+    override suspend fun discardChore(choreId: Long): Boolean {
+        val today = today().toEpochDay()
+        choreDao.getChore(choreId) ?: return false
+        val stored = discardBudgetDao.getForDay(today)?.toDiscardBudget()
+        if (Discards.left(stored, today) == 0) return false
+        val budget = Discards.record(stored, today)
+        choreDao.recordDiscard(
+            choreId = choreId,
+            day = today,
+            budget = DiscardBudgetEntity(day = budget.day, usedCount = budget.usedCount),
+        )
+        return true
+    }
 }
 
 private fun ChoreEntity.toChore() = Chore(
@@ -50,6 +74,12 @@ private fun ChoreEntity.toChore() = Chore(
     cadenceDays = cadenceDays,
     nextDueDay = nextDueDay,
     creationOrder = creationOrder,
+    lastDiscardedDay = lastDiscardedDay,
+)
+
+private fun DiscardBudgetEntity.toDiscardBudget() = DiscardBudget(
+    day = day,
+    usedCount = usedCount,
 )
 
 private fun Chore.toEntity() = ChoreEntity(

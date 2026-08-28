@@ -13,4 +13,7 @@ interface DiscardBudgetDao {
 
     @Query("SELECT * FROM discard_budget WHERE day = :day")
     fun observeForDay(day: Long): Flow<DiscardBudgetEntity?>
+
+    @Query("SELECT * FROM discard_budget WHERE day = :day")
+    suspend fun getForDay(day: Long): DiscardBudgetEntity?
 }

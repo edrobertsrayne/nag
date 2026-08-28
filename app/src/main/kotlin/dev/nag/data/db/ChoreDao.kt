@@ -4,6 +4,7 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.Query
 import androidx.room3.Transaction
+import androidx.room3.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -35,6 +36,22 @@ interface ChoreDao {
     suspend fun recordCompletion(completion: CompletionEntity, nextDueDay: Long) {
         insertCompletion(completion)
         setNextDueDay(completion.choreId, nextDueDay)
+    }
+
+    @Upsert
+    suspend fun upsertDiscardBudget(budget: DiscardBudgetEntity)
+
+    @Query("UPDATE chores SET last_discarded_day = :day WHERE id = :id")
+    suspend fun setLastDiscardedDay(id: Long, day: Long)
+
+    /**
+     * Hides the chore for the rest of [day] and spends one discard from the
+     * day-keyed budget row, atomically.
+     */
+    @Transaction
+    suspend fun recordDiscard(choreId: Long, day: Long, budget: DiscardBudgetEntity) {
+        setLastDiscardedDay(choreId, day)
+        upsertDiscardBudget(budget)
     }
 
     @Query("SELECT * FROM chores WHERE archived = 0 ORDER BY creation_order")

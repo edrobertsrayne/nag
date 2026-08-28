@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">nag</string>
     <string name="empty_deck_message">Nothing due.</string>
+    <string name="no_discards_left">No discards left</string>
     <string name="streak_label">day streak</string>
     <string name="open_queue">Open queue</string>
     <string name="back_to_deck">Back to deck</string>

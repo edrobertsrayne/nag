@@ -120,6 +120,64 @@ class DeckScreenTest {
         composeTestRule.onNodeWithText("Nothing due.").assertIsDisplayed()
     }
 
+    @Test
+    fun swipeLeftDiscardsAndAdvances() {
+        val repository = deckWith("dishes" to 1, "laundry" to 2)
+        composeTestRule.setContent {
+            MaterialTheme {
+                DeckScreen(repository = repository, onOpenQueue = {})
+            }
+        }
+        swipeCardLeft()
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText("laundry").assertIsDisplayed()
+        composeTestRule.onNodeWithText("dishes").assertDoesNotExist()
+    }
+
+    @Test
+    fun quickFlingLeftDiscardsAndAdvances() {
+        val repository = deckWith("dishes" to 1, "laundry" to 2)
+        composeTestRule.setContent {
+            MaterialTheme {
+                DeckScreen(repository = repository, onOpenQueue = {})
+            }
+        }
+        composeTestRule.onNodeWithTag(DECK_CARD_TAG).performTouchInput {
+            down(center)
+            moveTo(center + Offset(x = -width * 0.25f, y = 0f), delayMillis = 50)
+            up()
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText("laundry").assertIsDisplayed()
+        composeTestRule.onNodeWithText("dishes").assertDoesNotExist()
+    }
+
+    @Test
+    fun thirdLeftSwipeSpringsBackWithNoDiscardsLeft() {
+        val repository = deckWith("dishes" to 1, "laundry" to 2, "bins" to 3)
+        composeTestRule.setContent {
+            MaterialTheme {
+                DeckScreen(repository = repository, onOpenQueue = {})
+            }
+        }
+        swipeCardLeft()
+        composeTestRule.waitForIdle()
+        swipeCardLeft()
+        composeTestRule.waitForIdle()
+        swipeCardLeft()
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText("No discards left").assertIsDisplayed()
+        composeTestRule.onNodeWithText("bins").assertIsDisplayed()
+    }
+
+    private fun swipeCardLeft() {
+        composeTestRule.onNodeWithTag(DECK_CARD_TAG).performTouchInput {
+            down(center)
+            moveTo(center + Offset(x = -width * 0.6f, y = 0f), delayMillis = 300)
+            up()
+        }
+    }
+
     private fun deckWith(vararg nameToCadence: Pair<String, Int>): FakeNagRepository =
         FakeNagRepository().apply {
             today = 100
