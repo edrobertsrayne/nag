@@ -22,6 +22,12 @@ interface ChoreDao {
     @Query("UPDATE chores SET next_due_day = :nextDueDay WHERE id = :id")
     suspend fun setNextDueDay(id: Long, nextDueDay: Long)
 
+    @Query("UPDATE chores SET name = :name, cadence_days = :cadenceDays WHERE id = :id")
+    suspend fun setChoreDetails(id: Long, name: String, cadenceDays: Int)
+
+    @Query("UPDATE chores SET archived = 1 WHERE id = :id")
+    suspend fun setArchived(id: Long)
+
     /**
      * Inserts a new chore and sets its creation order to the row id, so deck
      * ties always break oldest-added first.

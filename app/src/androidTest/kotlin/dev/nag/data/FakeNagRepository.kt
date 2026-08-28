@@ -20,7 +20,8 @@ class FakeNagRepository(initialCompletionDays: Set<Long> = emptySet()) : NagRepo
 
     override val streak = completionDays.map { Streak.of(it, today) }
 
-    override val activeChores: Flow<List<Chore>> = chores
+    override val activeChores: Flow<List<Chore>> =
+        chores.map { list -> list.filter { !it.archived } }
 
     override val deck: Flow<List<Chore>> = chores.map { Deck.order(it, today) }
 
@@ -35,6 +36,18 @@ class FakeNagRepository(initialCompletionDays: Set<Long> = emptySet()) : NagRepo
             nextDueDay = today,
             creationOrder = id,
         )
+    }
+
+    override suspend fun editChore(choreId: Long, name: String, cadenceDays: Int) {
+        chores.value = chores.value.map { chore ->
+            if (chore.id == choreId) chore.editedTo(name = name, cadenceDays = cadenceDays) else chore
+        }
+    }
+
+    override suspend fun archiveChore(choreId: Long) {
+        chores.value = chores.value.map { chore ->
+            if (chore.id == choreId) chore.archivedOn() else chore
+        }
     }
 
     override suspend fun completeChore(choreId: Long) {

@@ -15,6 +15,19 @@ interface NagRepository {
 
     suspend fun addChore(name: String, cadenceDays: Int)
 
+    /**
+     * Edits the chore's name and cadence. Next-due is untouched; the new
+     * cadence applies from the chore's next completion.
+     */
+    suspend fun editChore(choreId: Long, name: String, cadenceDays: Int)
+
+    /**
+     * Archives the chore immediately, with no confirmation and no undo: it
+     * leaves the queue and the deck, while its completion records persist and
+     * keep counting toward the streak.
+     */
+    suspend fun archiveChore(choreId: Long)
+
     suspend fun completeChore(choreId: Long)
 
     /**

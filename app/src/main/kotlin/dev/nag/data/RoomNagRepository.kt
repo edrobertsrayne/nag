@@ -44,6 +44,14 @@ class RoomNagRepository(
         )
     }
 
+    override suspend fun editChore(choreId: Long, name: String, cadenceDays: Int) {
+        choreDao.setChoreDetails(id = choreId, name = name, cadenceDays = cadenceDays)
+    }
+
+    override suspend fun archiveChore(choreId: Long) {
+        choreDao.setArchived(choreId)
+    }
+
     override suspend fun completeChore(choreId: Long) {
         val completionDay = today().toEpochDay()
         val chore = choreDao.getChore(choreId) ?: return
@@ -75,6 +83,7 @@ private fun ChoreEntity.toChore() = Chore(
     nextDueDay = nextDueDay,
     creationOrder = creationOrder,
     lastDiscardedDay = lastDiscardedDay,
+    archived = archived,
 )
 
 private fun DiscardBudgetEntity.toDiscardBudget() = DiscardBudget(

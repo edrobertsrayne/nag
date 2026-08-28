@@ -19,6 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import dev.nag.Constants
 import dev.nag.R
 import dev.nag.data.NagRepository
+import dev.nag.domain.Chore
 import kotlinx.coroutines.launch
 
 @Composable
@@ -42,10 +44,17 @@ fun QueueScreen(repository: NagRepository, onBack: () -> Unit, modifier: Modifie
     val chores by repository.activeChores.collectAsState(initial = emptyList())
     var name by rememberSaveable { mutableStateOf("") }
     var cadenceText by rememberSaveable { mutableStateOf("1") }
+    var editingChoreId by rememberSaveable { mutableStateOf<Long?>(null) }
     val scope = rememberCoroutineScope()
 
     val cadence = cadenceText.toIntOrNull()
-    val canAdd = name.isNotBlank() && cadence != null && cadence >= Constants.CADENCE_MIN_DAYS
+    val canSubmit = name.isNotBlank() && cadence != null && cadence >= Constants.CADENCE_MIN_DAYS
+
+    fun resetForm() {
+        name = ""
+        cadenceText = "1"
+        editingChoreId = null
+    }
 
     Column(modifier = modifier.fillMaxSize().padding(24.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -72,21 +81,18 @@ fun QueueScreen(repository: NagRepository, onBack: () -> Unit, modifier: Modifie
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(chores, key = { it.id }) { chore ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(text = chore.name, style = MaterialTheme.typography.bodyLarge)
-                        Text(
-                            text = pluralStringResource(
-                                R.plurals.cadence_description,
-                                chore.cadenceDays,
-                                chore.cadenceDays,
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    ChoreRow(
+                        chore = chore,
+                        onEdit = {
+                            editingChoreId = chore.id
+                            name = chore.name
+                            cadenceText = chore.cadenceDays.toString()
+                        },
+                        onArchive = {
+                            if (editingChoreId == chore.id) resetForm()
+                            scope.launch { repository.archiveChore(chore.id) }
+                        },
+                    )
                 }
             }
         }
@@ -112,16 +118,57 @@ fun QueueScreen(repository: NagRepository, onBack: () -> Unit, modifier: Modifie
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
+                val submittedName = name.trim()
+                val submittedCadence = cadence ?: Constants.CADENCE_MIN_DAYS
+                val editedChoreId = editingChoreId
                 scope.launch {
-                    repository.addChore(name.trim(), cadence ?: Constants.CADENCE_MIN_DAYS)
+                    if (editedChoreId == null) {
+                        repository.addChore(submittedName, submittedCadence)
+                    } else {
+                        repository.editChore(editedChoreId, submittedName, submittedCadence)
+                    }
                 }
-                name = ""
-                cadenceText = "1"
+                resetForm()
             },
-            enabled = canAdd,
+            enabled = canSubmit,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(stringResource(R.string.add_chore))
+            Text(
+                stringResource(
+                    if (editingChoreId == null) R.string.add_chore else R.string.save_chore,
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChoreRow(
+    chore: Chore,
+    onEdit: () -> Unit,
+    onArchive: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = chore.name, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = pluralStringResource(
+                    R.plurals.cadence_description,
+                    chore.cadenceDays,
+                    chore.cadenceDays,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        TextButton(onClick = onEdit) {
+            Text(stringResource(R.string.edit_chore))
+        }
+        TextButton(onClick = onArchive) {
+            Text(stringResource(R.string.archive_chore))
         }
     }
 }

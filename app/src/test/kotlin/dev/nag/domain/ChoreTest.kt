@@ -6,6 +6,14 @@ import org.junit.Test
 
 class ChoreTest {
 
+    private fun overdueChore() = Chore(
+        id = 1,
+        name = "dishes",
+        cadenceDays = 1,
+        nextDueDay = 97,
+        creationOrder = 1,
+    )
+
     @Test
     fun `new chore is due immediately`() {
         val chore = Chore.create(name = "dishes", cadenceDays = 1, today = 100)
@@ -66,5 +74,44 @@ class ChoreTest {
     fun `discarded chore is visible again the next day`() {
         val chore = Chore.create(name = "dishes", cadenceDays = 1, today = 100).discardedOn(day = 100)
         assertTrue(!chore.isHiddenOn(day = 101))
+    }
+
+    @Test
+    fun `editing changes name and cadence`() {
+        val chore = Chore.create(name = "dishes", cadenceDays = 1, today = 100)
+        val edited = chore.editedTo(name = "washing up", cadenceDays = 3)
+        assertEquals("washing up", edited.name)
+        assertEquals(3, edited.cadenceDays)
+    }
+
+    @Test
+    fun `editing leaves next-due untouched`() {
+        assertEquals(97, overdueChore().editedTo(name = "dishes", cadenceDays = 7).nextDueDay)
+    }
+
+    @Test
+    fun `completing after an edit anchors the new cadence from the completion day`() {
+        val edited = overdueChore().editedTo(name = "dishes", cadenceDays = 7)
+        assertEquals(112, edited.completedOn(completionDay = 105).nextDueDay)
+    }
+
+    @Test
+    fun `editing keeps an overdue chore due`() {
+        assertTrue(overdueChore().editedTo(name = "dishes", cadenceDays = 7).isDue(today = 100))
+    }
+
+    @Test
+    fun `archiving marks the chore archived`() {
+        val chore = Chore.create(name = "dishes", cadenceDays = 1, today = 100)
+        assertTrue(chore.archivedOn().archived)
+    }
+
+    @Test
+    fun `archiving leaves next-due and history untouched`() {
+        val chore = Chore.create(name = "dishes", cadenceDays = 3, today = 100).discardedOn(day = 100)
+        val archived = chore.archivedOn()
+        assertEquals(100, archived.nextDueDay)
+        assertEquals(100, archived.lastDiscardedDay)
+        assertEquals("dishes", archived.name)
     }
 }

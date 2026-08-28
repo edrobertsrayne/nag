@@ -7,6 +7,7 @@ data class Chore(
     val nextDueDay: Long,
     val creationOrder: Long,
     val lastDiscardedDay: Long = 0,
+    val archived: Boolean = false,
 ) {
 
     fun isDue(today: Long): Boolean = today >= nextDueDay
@@ -16,6 +17,15 @@ data class Chore(
     fun discardedOn(day: Long): Chore = copy(lastDiscardedDay = day)
 
     fun isHiddenOn(day: Long): Boolean = lastDiscardedDay == day
+
+    /**
+     * Edits the chore's name and cadence. Next-due is untouched; the new
+     * cadence applies from the chore's next completion.
+     */
+    fun editedTo(name: String, cadenceDays: Int): Chore =
+        copy(name = name, cadenceDays = cadenceDays)
+
+    fun archivedOn(): Chore = copy(archived = true)
 
     companion object {
 

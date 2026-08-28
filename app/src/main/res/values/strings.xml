@@ -11,6 +11,9 @@
     <string name="chore_name_label">Name</string>
     <string name="cadence_label">Cadence (days)</string>
     <string name="add_chore">Add</string>
+    <string name="save_chore">Save</string>
+    <string name="edit_chore">Edit</string>
+    <string name="archive_chore">Archive</string>
     <plurals name="cadence_description">
         <item quantity="one">every day</item>
         <item quantity="other">every %1$d days</item>

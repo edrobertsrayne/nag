@@ -82,4 +82,17 @@ class DeckTest {
         val deck = Deck.order(listOf(discarded), today = 101)
         assertEquals(listOf(discarded), deck)
     }
+
+    @Test
+    fun `deck excludes archived chores`() {
+        val archived = chore(nextDueDay = 99).archivedOn()
+        val deck = Deck.order(listOf(archived, chore(nextDueDay = 100)), today = 100)
+        assertEquals(listOf(100L), deck.map { it.nextDueDay })
+    }
+
+    @Test
+    fun `archived overdue chore stays out of the deck`() {
+        val archived = chore(nextDueDay = 97).archivedOn()
+        assertEquals(emptyList<Chore>(), Deck.order(listOf(archived), today = 100))
+    }
 }
