@@ -1,5 +1,7 @@
 package dev.nag
 
+import androidx.compose.animation.core.Spring
+
 enum class NagLevel {
     GENTLE,
     FREQUENT,
@@ -19,8 +21,8 @@ object Constants {
 
     const val SWIPE_COMMIT_FRACTION = 0.4f
     const val SWIPE_FLING_VELOCITY_DP_PER_S = 800f
-    const val SWIPE_SPRING_DAMPING_RATIO = 0.5f
-    const val SWIPE_SPRING_STIFFNESS = 1500f
+    const val SWIPE_SPRING_DAMPING_RATIO = Spring.DampingRatioMediumBouncy
+    const val SWIPE_SPRING_STIFFNESS = Spring.StiffnessMedium
 
     const val QUIET_BEFORE_MINUTE = 9 * 60
     const val QUIET_AFTER_MINUTE = 21 * 60 + 30

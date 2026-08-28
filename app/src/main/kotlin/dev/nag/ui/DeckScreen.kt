@@ -20,11 +20,6 @@ import dev.nag.data.NagRepository
 @Composable
 fun DeckScreen(repository: NagRepository, modifier: Modifier = Modifier) {
     val streak by repository.streak.collectAsState(initial = 0)
-    EmptyDeck(streak = streak, modifier = modifier)
-}
-
-@Composable
-private fun EmptyDeck(streak: Int, modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
