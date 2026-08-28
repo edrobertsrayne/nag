@@ -3,4 +3,15 @@
     <string name="app_name">nag</string>
     <string name="empty_deck_message">Nothing due.</string>
     <string name="streak_label">day streak</string>
+    <string name="open_queue">Open queue</string>
+    <string name="back_to_deck">Back to deck</string>
+    <string name="queue_title">Queue</string>
+    <string name="empty_queue_message">No chores yet.</string>
+    <string name="chore_name_label">Name</string>
+    <string name="cadence_label">Cadence (days)</string>
+    <string name="add_chore">Add</string>
+    <plurals name="cadence_description">
+        <item quantity="one">every day</item>
+        <item quantity="other">every %1$d days</item>
+    </plurals>
 </resources>

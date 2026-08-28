@@ -17,7 +17,7 @@ class NagApplication : Application() {
         super.onCreate()
         createNotificationChannels()
         val database = Room.databaseBuilder(this, NagDatabase::class.java, NagDatabase.NAME).build()
-        repository = RoomNagRepository(database.completionDao())
+        repository = RoomNagRepository(database.choreDao(), database.completionDao())
     }
 
     private fun createNotificationChannels() {

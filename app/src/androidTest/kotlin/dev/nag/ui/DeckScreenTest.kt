@@ -20,7 +20,7 @@ class DeckScreenTest {
     fun emptyDeckShowsStreakAndCalmMessage() {
         composeTestRule.setContent {
             MaterialTheme {
-                DeckScreen(repository = FakeNagRepository(initialStreak = 0))
+                DeckScreen(repository = FakeNagRepository(initialStreak = 0), onOpenQueue = {})
             }
         }
         composeTestRule.onNodeWithText("0").assertIsDisplayed()
@@ -32,7 +32,7 @@ class DeckScreenTest {
     fun deckShowsCurrentStreak() {
         composeTestRule.setContent {
             MaterialTheme {
-                DeckScreen(repository = FakeNagRepository(initialStreak = 4))
+                DeckScreen(repository = FakeNagRepository(initialStreak = 4), onOpenQueue = {})
             }
         }
         composeTestRule.onNodeWithText("4").assertIsDisplayed()

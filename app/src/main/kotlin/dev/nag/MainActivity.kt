@@ -13,7 +13,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import dev.nag.ui.DeckScreen
+import dev.nag.ui.NagApp
 
 class MainActivity : ComponentActivity() {
 
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    DeckScreen(repository = repository)
+                    NagApp(repository = repository)
                 }
             }
         }
