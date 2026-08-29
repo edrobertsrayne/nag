@@ -6,10 +6,12 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -29,6 +31,9 @@ fun SwipeCard(
     content: @Composable () -> Unit,
 ) {
     val offsetX = remember(cardId) { Animatable(0f) }
+    // Synchronous mirror of the drag position: commit decisions at drag-end
+    // must see every drag event, not only the snapTo coroutines that landed.
+    var dragX by remember(cardId) { mutableFloatStateOf(0f) }
     val velocityTracker = remember(cardId) { VelocityTracker() }
     val committed = remember(cardId) { mutableStateOf(false) }
     val currentOnSwipeRight by rememberUpdatedState(onSwipeRight)
@@ -55,17 +60,20 @@ fun SwipeCard(
                         change.consume()
                         if (!committed.value) {
                             velocityTracker.addPosition(change.uptimeMillis, change.position)
-                            scope.launch { offsetX.snapTo(offsetX.value + dragAmount.x) }
+                            dragX += dragAmount.x
+                            android.util.Log.e("SwipeCard", "drag t=${change.uptimeMillis} x=${change.position} amount=${dragAmount.x} dragX=$dragX")
+                            scope.launch { offsetX.snapTo(dragX) }
                         }
                     },
                     onDragEnd = {
                         if (!committed.value) {
                             val velocity = velocityTracker.calculateVelocity().x
+                            android.util.Log.e("SwipeCard", "dragEnd dragX=$dragX velocity=$velocity width=${size.width}")
                             val draggedRight =
-                                offsetX.value > size.width * Constants.SWIPE_COMMIT_FRACTION
+                                dragX > size.width * Constants.SWIPE_COMMIT_FRACTION
                             val flungRight = velocity > flingVelocityPx
                             val draggedLeft =
-                                -offsetX.value > size.width * Constants.SWIPE_COMMIT_FRACTION
+                                -dragX > size.width * Constants.SWIPE_COMMIT_FRACTION
                             val flungLeft = -velocity > flingVelocityPx
                             when {
                                 draggedRight || flungRight -> {
@@ -84,14 +92,21 @@ fun SwipeCard(
                                         }
                                     } else {
                                         scope.launch { springBack(offsetX) }
+                                        dragX = 0f
                                         currentOnDiscardRejected()
                                     }
                                 }
-                                else -> scope.launch { springBack(offsetX) }
+                                else -> {
+                                    scope.launch { springBack(offsetX) }
+                                    dragX = 0f
+                                }
                             }
                         }
                     },
-                    onDragCancel = { scope.launch { springBack(offsetX) } },
+                    onDragCancel = {
+                        scope.launch { springBack(offsetX) }
+                        dragX = 0f
+                    },
                 )
             },
     ) {

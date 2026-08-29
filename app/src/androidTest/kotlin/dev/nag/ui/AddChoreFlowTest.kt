@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.nag.data.FakeNagRepository
@@ -36,6 +37,7 @@ class AddChoreFlowTest {
         composeTestRule.onNodeWithText("Nothing due.").assertIsDisplayed()
         composeTestRule.onNodeWithContentDescription("Open queue").performClick()
         composeTestRule.onNodeWithText("Name").performTextInput("dishes")
+        composeTestRule.onNodeWithText("Cadence (days)").performTextClearance()
         composeTestRule.onNodeWithText("Cadence (days)").performTextInput("1")
         composeTestRule.onNodeWithText("Add").performClick()
         composeTestRule.onNodeWithText("dishes").assertIsDisplayed()
@@ -48,6 +50,7 @@ class AddChoreFlowTest {
         setContentWithNagApp(today = 100)
         composeTestRule.onNodeWithContentDescription("Open queue").performClick()
         composeTestRule.onNodeWithText("Name").performTextInput("dishes")
+        composeTestRule.onNodeWithText("Cadence (days)").performTextClearance()
         composeTestRule.onNodeWithText("Cadence (days)").performTextInput("0")
         composeTestRule.onNodeWithText("Add").assertIsNotEnabled()
     }

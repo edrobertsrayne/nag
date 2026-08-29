@@ -29,6 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -46,6 +47,7 @@ fun QueueScreen(repository: NagRepository, onBack: () -> Unit, modifier: Modifie
     var cadenceText by rememberSaveable { mutableStateOf("1") }
     var editingChoreId by rememberSaveable { mutableStateOf<Long?>(null) }
     val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
 
     val cadence = cadenceText.toIntOrNull()
     val canSubmit = name.isNotBlank() && cadence != null && cadence >= Constants.CADENCE_MIN_DAYS
@@ -118,6 +120,7 @@ fun QueueScreen(repository: NagRepository, onBack: () -> Unit, modifier: Modifie
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
+                focusManager.clearFocus()
                 val submittedName = name.trim()
                 val submittedCadence = cadence ?: Constants.CADENCE_MIN_DAYS
                 val editedChoreId = editingChoreId

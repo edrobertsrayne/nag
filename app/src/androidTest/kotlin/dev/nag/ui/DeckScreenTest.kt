@@ -75,7 +75,9 @@ class DeckScreenTest {
         }
         composeTestRule.onNodeWithTag(DECK_CARD_TAG).performTouchInput {
             down(center)
-            moveTo(center + Offset(x = width * 0.25f, y = 0f), delayMillis = 50)
+            moveTo(center + Offset(x = width * 0.05f, y = 0f))
+            moveTo(center + Offset(x = width * 0.15f, y = 0f))
+            moveTo(center + Offset(x = width * 0.25f, y = 0f), delayMillis = 20)
             up()
         }
         composeTestRule.waitForIdle()
@@ -144,7 +146,9 @@ class DeckScreenTest {
         }
         composeTestRule.onNodeWithTag(DECK_CARD_TAG).performTouchInput {
             down(center)
-            moveTo(center + Offset(x = -width * 0.25f, y = 0f), delayMillis = 50)
+            moveTo(center + Offset(x = -width * 0.05f, y = 0f))
+            moveTo(center + Offset(x = -width * 0.15f, y = 0f))
+            moveTo(center + Offset(x = -width * 0.25f, y = 0f), delayMillis = 20)
             up()
         }
         composeTestRule.waitForIdle()
