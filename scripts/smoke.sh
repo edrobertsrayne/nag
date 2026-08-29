@@ -93,26 +93,33 @@ slots_for_dow() { # 0=Sun..6=Sat -> "minute:level minute:level ..."
   fi
 }
 
-expected_next_slot() { # echoes "YYYY-MM-DD HH:MM level" for "now" on the device host
-  local now_min now_dow d_min d_dow s best="" best_min=99999 level
-  now_min=$(( $(date '+%-H') * 60 + $(date '+%-M') ))
-  now_dow=$(date '+%w')
+device_field() { device_field_out=$(adb shell "$1" | tr -d '\r'); }
+
+expected_next_slot() { # echoes "YYYY-MM-DD HH:MM level" for the DEVICE clock
+  local now_date now_min now_dow d_min d_dow s best="" best_min=99999 level
+  device_field "date '+%F'"; now_date=$device_field_out
+  device_field "date '+%-H'"; local h=$device_field_out
+  device_field "date '+%-M'"; local m=$device_field_out
+  device_field "date '+%w'"; now_dow=$device_field_out
+  now_min=$((10#$h * 60 + 10#$m))
   d_min=$now_min; d_dow=$now_dow
   for _ in 1 2; do
     for s in $(slots_for_dow "$d_dow"); do
-      local m="${s%%:*}" lv="${s##*:}"
-      if [ "$d_min" -lt "$m" ] && [ "$m" -lt "$best_min" ]; then best_min=$m; best="$m"; level=$lv; fi
+      local sm="${s%%:*}" lv="${s##*:}"
+      if [ "$d_min" -lt "$sm" ] && [ "$sm" -lt "$best_min" ]; then best_min=$sm; best="$sm"; level=$lv; fi
     done
     [ -n "$best" ] && break
     d_min=-1; d_dow=$(( (d_dow + 1) % 7 )); best_min=99999
   done
-  local when
+  local hhmm
+  hhmm=$(printf '%02d:%02d' $((best_min / 60)) $((best_min % 60)))
   if [ "$d_dow" = "$now_dow" ]; then
-    when=$(date "+%F $(printf '%02d:%02d' $((best_min / 60)) $((best_min % 60)))")
+    echo "$now_date $hhmm $level"
   else
-    when=$(date -d tomorrow "+%F $(printf '%02d:%02d' $((best_min / 60)) $((best_min % 60)))")
+    # tomorrow in the device's timezone: device epoch + 24h, formatted on the host
+    device_field "date '+%s'"; local epoch_s=$device_field_out
+    echo "$(date -d "@$((epoch_s + 86400))" '+%F') $hhmm $level"
   fi
-  echo "$when $level"
 }
 
 armed_alarm_wallclock() { # first RTC_WAKEUP epoch-ms for dev.nag from dumpsys alarm
@@ -121,20 +128,21 @@ armed_alarm_wallclock() { # first RTC_WAKEUP epoch-ms for dev.nag from dumpsys a
 }
 
 check_armed_matches_table() { # check_armed_matches_table "note"
-  local note="$1" want got epoch_s
+  local note="$1" want got epoch_ms device_tz
   want=$(expected_next_slot)
+  device_field "getprop persist.sys.timezone"; device_tz=$device_field_out
   epoch_ms=$(armed_alarm_wallclock)
   if [ -z "$epoch_ms" ]; then
     adb shell dumpsys alarm | grep -i "$PKG" > "$OUT/alarm-$(date +%s).txt"
     record MANUAL "$note — could not parse alarm time; raw grep saved. Expected next slot: $want"
     return
   fi
-  epoch_s=$(( epoch_ms / 1000 ))
-  got=$(date -d "@$epoch_s" '+%F %H:%M')
-  if [ "$got" = "${want% *}" ] || [ "$got" = "$(echo "$want" | cut -d' ' -f1-2)" ]; then
-    record PASS "$note — armed $got (${want##* }) matches slot table"
+  # the armed epoch is the device's wall clock — compare in the device's timezone
+  got=$(TZ="$device_tz" date -d "@$((epoch_ms / 1000))" '+%F %H:%M')
+  if [ "$got" = "$(echo "$want" | cut -d' ' -f1-2)" ]; then
+    record PASS "$note — armed $got ($device_tz) matches slot table (${want##* })"
   else
-    record FAIL "$note — armed $got, expected $want"
+    record FAIL "$note — armed $got ($device_tz), expected $want"
   fi
 }
 
@@ -290,8 +298,6 @@ step8_reboot() {
 
 step9_update_survival() {
   say "9. adb install -r of rebuilt APK; alarm re-armed and data survives"
-  local before
-  before=$(adb shell dumpsys alarm | grep -i "$PKG" | head -1)
   (./gradlew assembleDebug --console=plain -q >/dev/null 2>&1)
   adb install -r "$APK" >/dev/null
   launch_app
@@ -310,7 +316,6 @@ step9_update_survival() {
   [ -n "$after" ] && record PASS "item 9 — alarm present after MY_PACKAGE_REPLACED" \
                   || record FAIL "item 9 — no alarm armed after update"
   check_armed_matches_table "item 9 (re-armed)"
-  [ -n "$before" ] || true
 }
 
 step10_clock_timezone() {

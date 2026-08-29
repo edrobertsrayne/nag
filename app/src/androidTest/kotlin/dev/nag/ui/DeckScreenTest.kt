@@ -73,13 +73,7 @@ class DeckScreenTest {
                 DeckScreen(repository = repository, onOpenQueue = {})
             }
         }
-        composeTestRule.onNodeWithTag(DECK_CARD_TAG).performTouchInput {
-            down(center)
-            moveTo(center + Offset(x = width * 0.05f, y = 0f))
-            moveTo(center + Offset(x = width * 0.15f, y = 0f))
-            moveTo(center + Offset(x = width * 0.25f, y = 0f), delayMillis = 20)
-            up()
-        }
+        flingCard(direction = 1f)
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("laundry").assertIsDisplayed()
         composeTestRule.onNodeWithText("dishes").assertDoesNotExist()
@@ -144,13 +138,7 @@ class DeckScreenTest {
                 DeckScreen(repository = repository, onOpenQueue = {})
             }
         }
-        composeTestRule.onNodeWithTag(DECK_CARD_TAG).performTouchInput {
-            down(center)
-            moveTo(center + Offset(x = -width * 0.05f, y = 0f))
-            moveTo(center + Offset(x = -width * 0.15f, y = 0f))
-            moveTo(center + Offset(x = -width * 0.25f, y = 0f), delayMillis = 20)
-            up()
-        }
+        flingCard(direction = -1f)
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("laundry").assertIsDisplayed()
         composeTestRule.onNodeWithText("dishes").assertDoesNotExist()
@@ -174,10 +162,24 @@ class DeckScreenTest {
         composeTestRule.onNodeWithText("bins").assertIsDisplayed()
     }
 
-    private fun swipeCardLeft() {
+    /** Full drag past the commit threshold: +1f completes, -1f discards. */
+    private fun swipeCard(direction: Float) {
         composeTestRule.onNodeWithTag(DECK_CARD_TAG).performTouchInput {
             down(center)
-            moveTo(center + Offset(x = -width * 0.6f, y = 0f), delayMillis = 300)
+            moveTo(center + Offset(x = direction * width * 0.6f, y = 0f), delayMillis = 300)
+            up()
+        }
+    }
+
+    private fun swipeCardLeft() = swipeCard(direction = -1f)
+
+    /** Quick flick: a run-up then a fast segment, so VelocityTracker sees ≥3 samples ≤40ms apart. */
+    private fun flingCard(direction: Float) {
+        composeTestRule.onNodeWithTag(DECK_CARD_TAG).performTouchInput {
+            down(center)
+            moveTo(center + Offset(x = width * 0.05f * direction, y = 0f))
+            moveTo(center + Offset(x = width * 0.15f * direction, y = 0f))
+            moveTo(center + Offset(x = width * 0.25f * direction, y = 0f), delayMillis = 20)
             up()
         }
     }

@@ -55,20 +55,21 @@ fun SwipeCard(
             .pointerInput(cardId) {
                 val flingVelocityPx = Constants.SWIPE_FLING_VELOCITY_DP_PER_S.dp.toPx()
                 detectDragGestures(
-                    onDragStart = { velocityTracker.resetTracking() },
+                    onDragStart = {
+                        velocityTracker.resetTracking()
+                        dragX = 0f
+                    },
                     onDrag = { change, dragAmount ->
                         change.consume()
                         if (!committed.value) {
                             velocityTracker.addPosition(change.uptimeMillis, change.position)
                             dragX += dragAmount.x
-                            android.util.Log.e("SwipeCard", "drag t=${change.uptimeMillis} x=${change.position} amount=${dragAmount.x} dragX=$dragX")
                             scope.launch { offsetX.snapTo(dragX) }
                         }
                     },
                     onDragEnd = {
                         if (!committed.value) {
                             val velocity = velocityTracker.calculateVelocity().x
-                            android.util.Log.e("SwipeCard", "dragEnd dragX=$dragX velocity=$velocity width=${size.width}")
                             val draggedRight =
                                 dragX > size.width * Constants.SWIPE_COMMIT_FRACTION
                             val flungRight = velocity > flingVelocityPx
@@ -92,21 +93,14 @@ fun SwipeCard(
                                         }
                                     } else {
                                         scope.launch { springBack(offsetX) }
-                                        dragX = 0f
                                         currentOnDiscardRejected()
                                     }
                                 }
-                                else -> {
-                                    scope.launch { springBack(offsetX) }
-                                    dragX = 0f
-                                }
+                                else -> scope.launch { springBack(offsetX) }
                             }
                         }
                     },
-                    onDragCancel = {
-                        scope.launch { springBack(offsetX) }
-                        dragX = 0f
-                    },
+                    onDragCancel = { scope.launch { springBack(offsetX) } },
                 )
             },
     ) {

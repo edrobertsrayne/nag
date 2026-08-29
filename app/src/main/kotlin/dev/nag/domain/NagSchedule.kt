@@ -8,6 +8,9 @@ import java.time.ZoneId
  * levels, the global quiet hours, the weekday silent window, and the
  * next-future-slot question the scheduler asks. Times are minutes since local
  * midnight; days are epoch days.
+ *
+ * scripts/smoke.sh mirrors this slot table (`slots_for_dow`) as an
+ * independent verification oracle — keep the two in sync when slots change.
  */
 enum class NagLevel {
     GENTLE,
