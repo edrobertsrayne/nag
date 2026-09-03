@@ -17,7 +17,7 @@ The date on which a chore becomes due. A chore is due when today ≥ next-due; o
 The act of swiping a due card right (or its equivalent). Recorded with the day it happened; days are local.
 
 **Deck**:
-The stack of all due-today chores, shown one card at a time. Most-overdue first.
+The stack of all due-today chores, shown one card at a time. Ordered by cadence, shortest first; ties break most-overdue-first, then most-recently-added.
 
 **Discard**:
 Swiping a card left to put a chore off for the rest of the day. The chore stays due; the card is hidden until tomorrow. At most 2 per day, globally.
