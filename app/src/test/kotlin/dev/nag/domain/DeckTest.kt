@@ -7,10 +7,10 @@ import org.junit.Test
 
 class DeckTest {
 
-    private fun chore(nextDueDay: Long, creationOrder: Long = 0) = Chore(
+    private fun chore(nextDueDay: Long, creationOrder: Long = 0, cadenceDays: Int = 1) = Chore(
         id = 0,
         name = "chore",
-        cadenceDays = 1,
+        cadenceDays = cadenceDays,
         nextDueDay = nextDueDay,
         creationOrder = creationOrder,
     )
@@ -57,7 +57,7 @@ class DeckTest {
     }
 
     @Test
-    fun `ties break oldest-added first`() {
+    fun `ties break most-recently-added first`() {
         val deck = Deck.order(
             listOf(
                 chore(nextDueDay = 99, creationOrder = 3),
@@ -66,7 +66,19 @@ class DeckTest {
             ),
             today = 100,
         )
-        assertEquals(listOf(1L, 2L, 3L), deck.map { it.creationOrder })
+        assertEquals(listOf(3L, 2L, 1L), deck.map { it.creationOrder })
+    }
+
+    @Test
+    fun `deck orders by cadence before overdue-ness`() {
+        val deck = Deck.order(
+            listOf(
+                chore(nextDueDay = 90, cadenceDays = 16),
+                chore(nextDueDay = 99, cadenceDays = 3),
+            ),
+            today = 100,
+        )
+        assertEquals(listOf(3, 16), deck.map { it.cadenceDays })
     }
 
     @Test
