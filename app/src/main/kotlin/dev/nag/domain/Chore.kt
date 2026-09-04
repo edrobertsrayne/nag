@@ -12,6 +12,9 @@ data class Chore(
 
     fun isDue(today: Long): Boolean = today >= nextDueDay
 
+    /** See CONTEXT.md's Overdue-ratio entry. */
+    fun overdueRatio(today: Long): Double = (today - nextDueDay).toDouble() / cadenceDays
+
     fun completedOn(completionDay: Long): Chore = copy(nextDueDay = completionDay + cadenceDays)
 
     fun discardedOn(day: Long): Chore = copy(lastDiscardedDay = day)

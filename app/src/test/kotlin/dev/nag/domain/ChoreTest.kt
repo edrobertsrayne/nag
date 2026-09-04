@@ -114,4 +114,16 @@ class ChoreTest {
         assertEquals(100, archived.lastDiscardedDay)
         assertEquals("dishes", archived.name)
     }
+
+    @Test
+    fun `overdue-ratio is days-overdue divided by cadence`() {
+        val chore = Chore(id = 1, name = "dishes", cadenceDays = 3, nextDueDay = 97, creationOrder = 1)
+        assertEquals(1.0, chore.overdueRatio(today = 100), 0.0)
+    }
+
+    @Test
+    fun `overdue-ratio is zero on the day a chore first becomes due`() {
+        val chore = Chore(id = 1, name = "dishes", cadenceDays = 30, nextDueDay = 100, creationOrder = 1)
+        assertEquals(0.0, chore.overdueRatio(today = 100), 0.0)
+    }
 }

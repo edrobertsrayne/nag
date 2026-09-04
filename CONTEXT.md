@@ -8,7 +8,8 @@ A personal Android nag app: a daily deck of chore cards you swipe to complete, b
 A recurring task the user tracks. Has a name and a cadence. Nothing else.
 
 **Cadence**:
-The every-N-days rhythm of a chore. N is a positive integer; N=1 means daily.
+The every-N-days rhythm of a chore. N is a positive integer; N=1 means daily. A chore with small N is _frequent_; large N is _infrequent_.
+_Avoid_: high cadence, low cadence — ambiguous, since a numerically higher N means a less-frequent chore.
 
 **Next-due**:
 The date on which a chore becomes due. A chore is due when today ≥ next-due; overdue chores stay due until completed.
@@ -17,7 +18,10 @@ The date on which a chore becomes due. A chore is due when today ≥ next-due; o
 The act of swiping a due card right (or its equivalent). Recorded with the day it happened; days are local.
 
 **Deck**:
-The stack of all due-today chores, shown one card at a time. Ordered by cadence, shortest first; ties break most-overdue-first, then most-recently-added.
+The stack of all due-today chores, shown one card at a time. Ordered by overdue-ratio descending; ties break shortest-cadence-first, then most-recently-added.
+
+**Overdue-ratio**:
+Days-overdue divided by cadence: how many full cycles of itself a chore has missed. A chore first becomes due at ratio 0; it reaches ratio 1 after being overdue for exactly one cadence. Drives deck order so a frequent chore and an infrequent chore that are each equally behind on their own schedule rank equally, instead of cadence alone deciding.
 
 **Discard**:
 Swiping a card left to put a chore off for the rest of the day. The chore stays due; the card is hidden until tomorrow. At most 2 per day, globally.

@@ -21,7 +21,7 @@ object Nag {
     fun content(chores: List<Chore>, completionDays: Set<Long>, today: Long): NagContent {
         val due = chores.filter { !it.archived && it.isDue(today) }
         val firstCard = Deck.order(chores, today).firstOrNull()
-            ?: due.minWithOrNull(Deck.ordering)
+            ?: due.minWithOrNull(Deck.orderingOn(today))
         return NagContent(
             firstCardTitle = firstCard?.name,
             dueCount = due.size,

@@ -70,11 +70,23 @@ class DeckTest {
     }
 
     @Test
-    fun `deck orders by cadence before overdue-ness`() {
+    fun `deck orders by overdue-ratio, not cadence`() {
         val deck = Deck.order(
             listOf(
                 chore(nextDueDay = 90, cadenceDays = 16),
                 chore(nextDueDay = 99, cadenceDays = 3),
+            ),
+            today = 100,
+        )
+        assertEquals(listOf(16, 3), deck.map { it.cadenceDays })
+    }
+
+    @Test
+    fun `ties on equal overdue-ratio break by shortest cadence first`() {
+        val deck = Deck.order(
+            listOf(
+                chore(nextDueDay = 100, cadenceDays = 16, creationOrder = 2),
+                chore(nextDueDay = 100, cadenceDays = 3, creationOrder = 1),
             ),
             today = 100,
         )
